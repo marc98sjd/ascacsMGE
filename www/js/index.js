@@ -100,6 +100,7 @@ function disponible(){
   //var texto = $("#logueado").text();
 
   $("#token_place").text(localStorage.token);
+   localStorage.removeItem("token");
 }
 
 //copiar token
