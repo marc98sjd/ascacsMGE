@@ -1,28 +1,100 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
- //onload listo
+//onload listo
 function ready(){
-  titulo();
+  titulo("AJEDREZ");
   disponible();
 }
+function partida(){
+    titulo("A JUGAR");
+    alert(localStorage.user2);
+}
+function inicio(){
+    titulo("AJEDREZ");
+    login();
+}
 
+//llamada ajax login
+function login(){
+    $(document).ready(function(){
+        $("#login").click(function(){
+            var correo = $("#userName").val();
+            var contra = $("#userPassword").val();
+            $.ajax({
+                type: 'GET',
+                url: 'https://young-inlet-29774.herokuapp.com/api/login/'+correo+'/'+contra,
+                contentType: 'text/plain',
+
+                xhrFields: {
+                  withCredentials: false
+                },
+
+                success: function(result) {
+                    var resultado = JSON.parse(result);
+                    if (resultado.status == "wrong") {
+                        alert(resultado.msg);
+                    }else{
+                        localStorage.setItem("token", resultado.token);
+                        window.location.replace("disponible.html");
+                    }
+                },
+
+                error: function() {
+                    alert("Algo falló.");
+                }
+            });
+        });
+    }); 
+}
+
+
+//pantalla disponible
+function disponible(){
+  $("#token_place").text(localStorage.token);
+  $("#menu1").click(function(){
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/disponible/'+localStorage.token,
+
+      success: function(result) {
+        $("#listado").empty();
+        for (var i = 0; i < result.length; i++) {
+            $("#header ul").append('<li class="listados" role="presentation"><a class="posibles" role="menuitem" tabindex="-1" onclick="jugar()">'+result[i]+'</a></li>');
+        }
+        if ($('.listados').length == 0){
+            $("#header ul").append('<li class="listados" role="presentation">NADIE</li>');
+        }
+
+        $(".posibles").click(function(event){
+            localStorage.setItem("user2", event.target.innerHTML);
+        });
+      },
+
+      error: function() {
+        alert("Algo falló.");
+      }
+    });
+
+  });
+
+}
+
+//copiar token
+function copiar() {
+  var token = $("#token_place").text();
+  var tempInput = document.createElement("input");
+  tempInput.style = "position: absolute; left: -1000px; top: -1000px";
+  tempInput.value = token;
+  document.body.appendChild(tempInput);
+  tempInput.select();
+  document.execCommand("copy");
+  document.body.removeChild(tempInput);
+}
+
+//iniciar partida
+function jugar(){
+    window.location.replace("partida.html");
+}
+
+//cordova
 var app = {
     // Application Constructor
     initialize: function() {
@@ -52,77 +124,14 @@ var app = {
 
 app.initialize();
 
-//llamadas ajax
-$(document).ready(function(){
-    $("#login").click(function(){
-        $.ajax({
-
-          // The 'type' property sets the HTTP method.
-          // A value of 'PUT' or 'DELETE' will trigger a preflight request.
-          type: 'GET',
-
-          // The URL to make the request to.
-          url: 'https://young-inlet-29774.herokuapp.com/api/login/marc98_sjd@hotmail.es/admin123',
-
-          // The 'contentType' property sets the 'Content-Type' header.
-          // The JQuery default for this property is
-          // 'application/x-www-form-urlencoded; charset=UTF-8', which does not trigger
-          // a preflight. If you set this value to anything other than
-          // application/x-www-form-urlencoded, multipart/form-data, or text/plain,
-          // you will trigger a preflight request.
-          contentType: 'text/plain',
-
-          xhrFields: {
-            // The 'xhrFields' property sets additional fields on the XMLHttpRequest.
-            // This can be used to set the 'withCredentials' property.
-            // Set the value to 'true' if you'd like to pass cookies to the server.
-            // If this is enabled, your server must respond with the header
-            // 'Access-Control-Allow-Credentials: true'.
-            withCredentials: false
-          },
-
-          success: function(result) {
-            var resultado = JSON.parse(result);
-            alert("token: "+resultado.token+"\nmsg: "+resultado.msg);
-            localStorage.setItem("token", resultado.token);
-            window.location.replace("disponible.html");
-          },
-
-          error: function() {
-            alert("Login incorrecto.");
-          }
-        });
-    });
-});
-
-//pantalla disponible
-function disponible(){
-  //var texto = $("#logueado").text();
-
-  $("#token_place").text(localStorage.token);
-   localStorage.removeItem("token");
-}
-
-//copiar token
-function copiar() {
-  var token = $("#token_place").text();
-  var tempInput = document.createElement("input");
-  tempInput.style = "position: absolute; left: -1000px; top: -1000px";
-  tempInput.value = token;
-  document.body.appendChild(tempInput);
-  tempInput.select();
-  document.execCommand("copy");
-  document.body.removeChild(tempInput);
-}
-
-//login/disponible effects
-function titulo(){
+//login/disponible/partida effects
+function titulo(palabra){
     var c = document.getElementById("myCanvas");
     var ctx = c.getContext("2d");
     var mask;
 
     var pointCount = 500;
-    var str = "AJEDREZ";
+    var str = palabra;
     var fontStr = "bold 128pt Helvetica Neue, Helvetica, Arial, sans-serif";
 
     ctx.font = fontStr;
