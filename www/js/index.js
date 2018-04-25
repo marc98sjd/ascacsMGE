@@ -4,8 +4,7 @@ function ready(){
   disponible();
 }
 function partida(){
-    titulo("A JUGAR");
-    alert(localStorage.user2);
+    crearTablero();
 }
 function inicio(){
     titulo("AJEDREZ");
@@ -91,9 +90,93 @@ function copiar() {
 
 //iniciar partida
 function jugar(){
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/jugar/'+localStorage.user2+'/'+localStorage.token,
+
+      success: function(result) {
+        alert("resultado crear partida: "+result);
+      },
+
+      error: function() {
+        alert("Algo falló.");
+      }
+    });
     window.location.replace("partida.html");
 }
 
+//tablero
+function crearTablero() {
+  var table = document.createElement("table");
+  var tabla = function(){
+    $(this).css({
+      'border-style' : 'solid',
+      'border-width' : '20px',
+      'border-color' : '#6d502c',
+      'box-shadow' : '10px 10px 8px 10px #888888',
+       'margin' : '0 auto'
+    });
+  }
+  tabla.call( table );
+  for(var i = 1; i < 9; i++){
+      var tr = document.createElement('tr');
+      var trr = function(){
+        $(this).css({
+          'height' : '70px'
+        });
+      }
+      trr.call( tr );
+      for(var j = 1; j < 9; j++){
+        var td = document.createElement('td');
+        if(i%2 == j%2){
+          var marronFlojo = function(){
+            $(this).css('background-color', '#c9a060').addClass("rounded");
+            if (i == 1) {
+              if (j == 1 || j == 8) {
+                var img = "<img src='img/b6.png' width='100%' height='80%' border='2' display='block' alt=''/>";            
+              }
+            }else if(i == 2) {
+              var img = "<img src='img/b4.png' width='100%' height='80%' border='2' display='block' alt=''/>";
+            }else if(i == 7) {
+              var img = "<img src='img/n4.png' width='100%' height='80%' border='2' display='block' alt=''/>";
+            }else if(i == 8){
+              if (j == 1 || j == 8) {
+                var img = "<img src='img/n6.png' width='100%' height='80%' border='2' display='block' alt=''/>";            
+              }
+            }else{
+              var img = "<img src='img/oscuro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
+            }
+            $(this).append(img);
+          }
+          marronFlojo.call( td );
+        }else{
+          var marronFuerte = function(){
+            $(this).css('background-color', '#f9dcae').addClass("rounded").append(img);
+            if (i == 1) {
+              if (j == 1 || j == 8) {
+                var img = "<img src='img/b6.png' width='100%' height='80%' border='2' display='block' alt=''/>";
+              }
+            }else if(i == 2) {
+              var img = "<img src='img/b4.png' width='100%' height='80%' border='2' display='block' alt=''/>";
+            }else if(i == 7) {
+              var img = "<img src='img/n4.png' width='100%' height='80%' border='2' display='block' alt=''/>";
+            }else if(i == 8){
+              if (j == 1 || j == 8) {
+                var img = "<img src='img/n6.png' width='100%' height='80%' border='2' display='block' alt=''/>";            
+              }
+            }else{
+              var img = "<img src='img/claro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
+            }
+            $(this).append(img);
+          }
+          marronFuerte.call( td );
+        }
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+  }
+  $(".tablero").append(table);
+}
 //cordova
 var app = {
     // Application Constructor
