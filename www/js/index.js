@@ -44,11 +44,22 @@ function login(){
     }); 
 }
 
+//copiar token
+function copiar() {
+  var token = $("#token_place").text();
+  var tempInput = document.createElement("input");
+  tempInput.style = "position: absolute; left: -1000px; top: -1000px";
+  tempInput.value = token;
+  document.body.appendChild(tempInput);
+  tempInput.select();
+  document.execCommand("copy");
+  document.body.removeChild(tempInput);
+}
 
 //pantalla disponible
 function disponible(){
   $("#token_place").text(localStorage.token);
-  $("#menu1").click(function(){
+  $("#menuUser").click(function(){
     $.ajax({
       type: 'GET',
       url: 'https://young-inlet-29774.herokuapp.com/api/disponible/'+localStorage.token,
@@ -74,18 +85,32 @@ function disponible(){
 
   });
 
-}
+  $("#menuPartida").click(function(){
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/partidas/'+localStorage.token,
 
-//copiar token
-function copiar() {
-  var token = $("#token_place").text();
-  var tempInput = document.createElement("input");
-  tempInput.style = "position: absolute; left: -1000px; top: -1000px";
-  tempInput.value = token;
-  document.body.appendChild(tempInput);
-  tempInput.select();
-  document.execCommand("copy");
-  document.body.removeChild(tempInput);
+      success: function(result) {
+        $("#listar").empty();
+        if (result != "") {
+          for (var i = 0; i < result.length; i += 2) {
+              $("#header2 ul").append('<li class="lista2" role="presentation"><a class="posible2" value="'+result[i]+'" role="menuitem" tabindex="-1">'+result[i+1]+'</a></li>');
+          }          
+        }else{
+          $("#header2 ul").append('<li class="lista2" role="presentation">SIN PARTIDA</li>');
+        }
+
+        $(".posible2").click(function(event){
+          localStorage.setItem("idPartida", event.target.getAttribute("value"));
+          jugarYa();
+        });
+      },
+
+      error: function() {
+        alert("Algo falló.");
+      }
+    });
+  });
 }
 
 //iniciar partida
@@ -95,16 +120,25 @@ function jugar(){
       url: 'https://young-inlet-29774.herokuapp.com/api/jugar/'+localStorage.user2+'/'+localStorage.token,
 
       success: function(result) {
-        alert("resultado crear partida: "+result);
+        result = JSON.parse(result);
+        if (result.status == "ok") {
+          localStorage.setItem("idPartida", result.idPartida);
+          jugarYa();
+        }else{
+          alert("ERROR: "+result.msg);
+        }
       },
 
       error: function() {
         alert("Algo falló.");
       }
     });
-    window.location.replace("partida.html");
 }
 
+//funcion que redirige a partida
+function jugarYa(){
+  window.location.replace("partida.html?id="+localStorage.idPartida);
+}
 //tablero
 function crearTablero() {
   var table = document.createElement("table");
@@ -329,5 +363,3 @@ function titulo(palabra){
     setInterval(loop,50);
     init(); 
 }
-
- 
