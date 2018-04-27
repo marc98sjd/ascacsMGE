@@ -1,62 +1,15 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
- //onload listo
+//onload listo
 function ready(){
   titulo("AJEDREZ");
   disponible();
 }
-function partida(){
-    titulo("A JUGAR");
-}
+/*function partida(){
+    crearTablero();
+}*/
 function inicio(){
     titulo("AJEDREZ");
     login();
 }
-var app = {
-    // Application Constructor
-    initialize: function() {
-        document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
-    },
-
-    // deviceready Event Handler
-    //
-    // Bind any cordova events here. Common events are:
-    // 'pause', 'resume', etc.
-    onDeviceReady: function() {
-        this.receivedEvent('deviceready');
-    },
-
-    // Update DOM on a Received Event
-    receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
-
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
-
-        console.log('Received Event: ' + id);
-    }
-};
-
-app.initialize();
 
 //llamada ajax login
 function login(){
@@ -91,39 +44,6 @@ function login(){
     }); 
 }
 
-
-//pantalla disponible
-function disponible(){
-  $("#token_place").text(localStorage.token);
-  $("#menu1").click(function(){
-    $.ajax({
-      type: 'GET',
-      url: 'https://young-inlet-29774.herokuapp.com/api/disponible/'+localStorage.token,
-
-      success: function(result) {
-        $("#listado").empty();
-        for (var i = 0; i < result.length; i++) {
-            $("#header ul").append('<li class="listados" role="presentation"><button class="posibles" role="menuitem" tabindex="-1" value="'+result[i]+'">'+result[i]+'</button></li>');
-        }
-        if ($('.listados').length == 0){
-            $("#header ul").append('<li class="listados" role="presentation">NADIE</li>');
-        }
-
-        $(".posibles").click(function(event) {
-            var fired_button = event.target.value;
-            alert(fired_button);
-        });
-      },
-
-      error: function() {
-        alert("Algo falló.");
-      }
-    });
-
-  });
-
-}
-
 //copiar token
 function copiar() {
   var token = $("#token_place").text();
@@ -136,12 +56,199 @@ function copiar() {
   document.body.removeChild(tempInput);
 }
 
-//iniciar partida
-function jugar(){
-    alert($(this).val());
+//pantalla disponible
+function disponible(){
+  $("#token_place").text(localStorage.token);
+  $("#menuUser").click(function(){
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/disponible/'+localStorage.token,
+
+      success: function(result) {
+        $("#listado").empty();
+        for (var i = 0; i < result.length; i++) {
+            $("#header ul").append('<li class="listados" role="presentation"><a class="posibles" role="menuitem" tabindex="-1" onclick="jugar()">'+result[i]+'</a></li>');
+        }
+        if ($('.listados').length == 0){
+            $("#header ul").append('<li class="listados" role="presentation">NADIE</li>');
+        }
+
+        $(".posibles").click(function(event){
+            localStorage.setItem("user2", event.target.innerHTML);
+        });
+      },
+
+      error: function() {
+        alert("Algo falló.");
+      }
+    });
+
+  });
+
+  $("#menuPartida").click(function(){
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/partidas/'+localStorage.token,
+
+      success: function(result) {
+        $("#listar").empty();
+        if (result != "") {
+          for (var i = 0; i < result.length; i += 2) {
+              $("#header2 ul").append('<li class="lista2" role="presentation"><a class="posible2" value="'+result[i]+'" role="menuitem" tabindex="-1">'+result[i+1]+'</a></li>');
+          }          
+        }else{
+          $("#header2 ul").append('<li class="lista2" role="presentation">SIN PARTIDA</li>');
+        }
+
+        $(".posible2").click(function(event){
+          localStorage.setItem("idPartida", event.target.getAttribute("value"));
+          jugarYa();
+        });
+      },
+
+      error: function() {
+        alert("Algo falló.");
+      }
+    });
+  });
 }
 
-//login/disponible effects
+//iniciar partida
+function jugar(){
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/jugar/'+localStorage.user2+'/'+localStorage.token,
+
+      success: function(result) {
+        result = JSON.parse(result);
+        if (result.status == "ok") {
+          localStorage.setItem("idPartida", result.idPartida);
+          jugarYa();
+        }else{
+          alert("ERROR: "+result.msg);
+        }
+      },
+
+      error: function() {
+        alert("Algo falló.");
+      }
+    });
+}
+
+//funcion que redirige a partida
+function jugarYa(){
+    window.location.replace("partida.html?id="+localStorage.idPartida);
+    
+    window.setInterval(function(){
+        recTablero();
+    }, 1000);
+
+
+}
+
+//recargar tablero
+function recTablero(){
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/fixa/'+localStorage.idPartida,
+
+      success: function(result) {
+        crearTablero(result);
+        alert("estoy llamando las fichas bien");
+      },
+
+      error: function() {
+        alert("Algo falló en ajax:\nhttps://young-inlet-29774.herokuapp.com/api/fixa/"+localStorage.idPartida);
+      }
+    });
+}
+
+//tablero
+function crearTablero(fichas) {
+  var table = document.createElement("table");
+  var tabla = function(){
+    $(this).css({
+      'border-style' : 'solid',
+      'border-width' : '20px',
+      'border-color' : '#6d502c',
+      'box-shadow' : '10px 10px 8px 10px #888888',
+       'margin' : '0 auto'
+    });
+  }
+  tabla.call( table );
+  for(var i = 1; i < 9; i++){
+      var tr = document.createElement('tr');
+      var trr = function(){
+        $(this).css({
+          'height' : '70px'
+        });
+      }
+      trr.call( tr );
+      for(var j = 1; j < 9; j++){
+        var td = document.createElement('td');
+        if(i%2 == j%2){
+          var marronFlojo = function(){
+            $(this).css('background-color', '#c9a060').addClass("rounded").attr("value", ""+i+j);
+            alert($(this).val()+"\n"+Number($(this).val()));
+            if ($(this).val() == fichas[$(this).val()]) {
+                var img = "<img class='hvr-buzz-out' src='"+fichas[Number($(this).val())+1]+"' width='100%' height='80%' border='2' display='block' alt=''/>";
+            }else{
+                var img = "<img src='img/oscuro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
+            }
+            $(this).append(img);
+          }
+          marronFlojo.call( td );
+        }else{
+          var marronFuerte = function(){
+            $(this).css('background-color', '#f9dcae').addClass("rounded").attr("value", ""+i+j);
+            alert($(this).val()+"\n"+Number($(this).val()));
+            if ($(this).val() == fichas[$(this).val()]) {
+                var img = "<img class='hvr-buzz-out' src='"+fichas[Number($(this).val())+1]+"' width='100%' height='80%' border='2' display='block' alt=''/>";
+            }else{
+                var img = "<img src='img/claro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
+            }
+            $(this).append(img);
+          }
+          marronFuerte.call( td );
+        }
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+  }
+  $(".tablero").append(table);
+}
+
+//cordova
+var app = {
+    // Application Constructor
+    initialize: function() {
+        document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
+    },
+
+    // deviceready Event Handler
+    //
+    // Bind any cordova events here. Common events are:
+    // 'pause', 'resume', etc.
+    onDeviceReady: function() {
+        this.receivedEvent('deviceready');
+    },
+
+    // Update DOM on a Received Event
+    receivedEvent: function(id) {
+        var parentElement = document.getElementById(id);
+        var listeningElement = parentElement.querySelector('.listening');
+        var receivedElement = parentElement.querySelector('.received');
+
+        listeningElement.setAttribute('style', 'display:none;');
+        receivedElement.setAttribute('style', 'display:block;');
+
+        console.log('Received Event: ' + id);
+    }
+};
+
+app.initialize();
+
+//login/disponible/partida effects
 function titulo(palabra){
     var c = document.getElementById("myCanvas");
     var ctx = c.getContext("2d");
@@ -263,5 +370,3 @@ function titulo(palabra){
     setInterval(loop,50);
     init(); 
 }
-
- 

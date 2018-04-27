@@ -4,7 +4,9 @@ function ready(){
   disponible();
 }
 function partida(){
-    crearTablero();
+    //window.setInterval(function(){
+        recTablero();
+    //}, 2000);
 }
 function inicio(){
     titulo("AJEDREZ");
@@ -137,10 +139,33 @@ function jugar(){
 
 //funcion que redirige a partida
 function jugarYa(){
-  window.location.replace("partida.html?id="+localStorage.idPartida);
+    window.location.replace("partida.html");
 }
+
+//recargar tablero
+function recTablero(){
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/fixa/'+localStorage.idPartida,
+
+      success: function(result) {
+        crearTablero(result);
+        alert("estoy llamando las fichas bien");
+      },
+
+      error: function() {
+        alert("Algo falló en ajax:\nhttps://young-inlet-29774.herokuapp.com/api/fixa/"+localStorage.idPartida);
+      }
+    });
+}
+
 //tablero
-function crearTablero() {
+function crearTablero(result){
+    var fichas = {};
+    for (var i = 0; i < result.length; i += 2) {
+        fichas[result[i]] = fichas[result[i+1]];
+    }
+  $(".tablero" ).empty();
   var table = document.createElement("table");
   var tabla = function(){
     $(this).css({
@@ -164,42 +189,22 @@ function crearTablero() {
         var td = document.createElement('td');
         if(i%2 == j%2){
           var marronFlojo = function(){
-            $(this).css('background-color', '#c9a060').addClass("rounded");
-            if (i == 1) {
-              if (j == 1 || j == 8) {
-                var img = "<img class='hvr-buzz-out' src='img/b6.png' width='100%' height='80%' border='2' display='block' alt=''/>";            
-              }
-            }else if(i == 2) {
-              var img = "<img class='hvr-buzz-out' src='img/b4.png' width='100%' height='80%' border='2' display='block' alt=''/>";
-            }else if(i == 7) {
-              var img = "<img class='hvr-buzz-out' src='img/n4.png' width='100%' height='80%' border='2' display='block' alt=''/>";
-            }else if(i == 8){
-              if (j == 1 || j == 8) {
-                var img = "<img class='hvr-buzz-out' src='img/n6.png' width='100%' height='80%' border='2' display='block' alt=''/>";            
-              }
+            $(this).css('background-color', '#c9a060').addClass("rounded").attr("value", ""+i+j);
+            if ($(this).attr('value') in fichas){
+                var img = "<img class='hvr-buzz-out' src='"+fichas[$(this).attr('value')]+"' width='100%' height='80%' border='2' display='block' alt=''/>";
             }else{
-              var img = "<img src='img/oscuro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
+                var img = "<img src='img/oscuro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
             }
             $(this).append(img);
           }
           marronFlojo.call( td );
         }else{
           var marronFuerte = function(){
-            $(this).css('background-color', '#f9dcae').addClass("rounded").append(img);
-            if (i == 1) {
-              if (j == 1 || j == 8) {
-                var img = "<img class='hvr-buzz-out' src='img/b6.png' width='100%' height='80%' border='2' display='block' alt=''/>";
-              }
-            }else if(i == 2) {
-              var img = "<img class='hvr-buzz-out' src='img/b4.png' width='100%' height='80%' border='2' display='block' alt=''/>";
-            }else if(i == 7) {
-              var img = "<img class='hvr-buzz-out' src='img/n4.png' width='100%' height='80%' border='2' display='block' alt=''/>";
-            }else if(i == 8){
-              if (j == 1 || j == 8) {
-                var img = "<img class='hvr-buzz-out' src='img/n6.png' width='100%' height='80%' border='2' display='block' alt=''/>";            
-              }
+            $(this).css('background-color', '#f9dcae').addClass("rounded").attr("value", ""+i+j);
+            if ($(this).attr('value') in fichas){
+                var img = "<img class='hvr-buzz-out' src='"+fichas[Number($(this).attr('value'))]+"' width='100%' height='80%' border='2' display='block' alt=''/>";
             }else{
-              var img = "<img src='img/claro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
+                var img = "<img src='img/claro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
             }
             $(this).append(img);
           }
@@ -211,6 +216,7 @@ function crearTablero() {
   }
   $(".tablero").append(table);
 }
+
 //cordova
 var app = {
     // Application Constructor
