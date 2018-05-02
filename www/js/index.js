@@ -4,13 +4,12 @@ function ready(){
   disponible();
 }
 function partida(){
-    //window.setInterval(function(){
-        recTablero();
-    //}, 2000);
+  $("#blancas").hide();
+  recTablero();
 }
 function inicio(){
-    titulo("AJEDREZ");
-    login();
+  titulo("AJEDREZ");
+  login();
 }
 
 //llamada ajax login
@@ -44,6 +43,25 @@ function login(){
             });
         });
     }); 
+}
+
+//logout
+function logout(){
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/logout/'+localStorage.token,
+
+      success: function() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("idPartida");
+        localStorage.removeItem("user2");
+        window.location.replace("index.html");
+      },
+
+      error: function() {
+        alert("No puedes cerrar sesión en éste momento.");
+      }
+    });
 }
 
 //copiar token
@@ -150,20 +168,26 @@ function recTablero(){
 
       success: function(result) {
         crearTablero(result);
-        alert("estoy llamando las fichas bien");
+        turno();
       },
 
       error: function() {
-        alert("Algo falló en ajax:\nhttps://young-inlet-29774.herokuapp.com/api/fixa/"+localStorage.idPartida);
+        alert("Algo falló");
       }
     });
+}
+
+//cambiar turno
+function turno(){
+  $("#blancas").slideToggle();
+  $("#negras").slideToggle();
 }
 
 //tablero
 function crearTablero(result){
     var fichas = {};
-    for (var i = 0; i < result.length; i += 2) {
-        fichas[result[i]] = fichas[result[i+1]];
+    for (var i = 0; i < result.length; i += 3) {
+        fichas[result[i]] = [result[i+1],result[i+2]];
     }
   $(".tablero" ).empty();
   var table = document.createElement("table");
@@ -191,9 +215,10 @@ function crearTablero(result){
           var marronFlojo = function(){
             $(this).css('background-color', '#c9a060').addClass("rounded").attr("value", ""+i+j);
             if ($(this).attr('value') in fichas){
-                var img = "<img class='hvr-buzz-out' src='"+fichas[$(this).attr('value')]+"' width='100%' height='80%' border='2' display='block' alt=''/>";
+              var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
             }else{
-                var img = "<img src='img/oscuro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
+              $(this).attr("onclick", "moverFicha(event)");
+              var img = "<img src='img/oscuro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
             }
             $(this).append(img);
           }
@@ -202,9 +227,10 @@ function crearTablero(result){
           var marronFuerte = function(){
             $(this).css('background-color', '#f9dcae').addClass("rounded").attr("value", ""+i+j);
             if ($(this).attr('value') in fichas){
-                var img = "<img class='hvr-buzz-out' src='"+fichas[Number($(this).attr('value'))]+"' width='100%' height='80%' border='2' display='block' alt=''/>";
+              var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
             }else{
-                var img = "<img src='img/claro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
+              $(this).attr("onclick", "moverFicha(event)");
+              var img = "<img src='img/claro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
             }
             $(this).append(img);
           }
@@ -215,6 +241,36 @@ function crearTablero(result){
       table.appendChild(tr);
   }
   $(".tablero").append(table);
+}
+
+//guardo la ficha seleccionada
+function guardarFicha(event){
+  localStorage.setItem("idFicha", event.target.getAttribute("id"));
+}
+
+//intento hacer el movimiento indicado
+function moverFicha(event){
+  if (!(localStorage.getItem("idFicha") === null)) {
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/mover/'+localStorage.token+'/'+localStorage.idFicha+'/'+event.target.getAttribute("value"),
+
+      success: function(result) {
+        result = JSON.parse(result);
+        if (result.status == "ok") {
+          recTablero();
+        }else{
+          alert("ERROR: "+result.msg);
+        }
+        localStorage.removeItem("idFicha");
+      },
+
+      error: function() {
+        alert("Algo falló, lo arreglaremos con la mayor brevedad posible.");
+        localStorage.removeItem("idFicha");
+      }
+    });
+  }
 }
 
 //cordova
