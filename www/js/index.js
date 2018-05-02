@@ -4,13 +4,17 @@ function ready(){
   disponible();
 }
 function partida(){
-  $("#blancas").hide();
-  recTablero();
+  window.setInterval(function(){
+    recTablero();
+  }, 2000);
 }
 function inicio(){
   titulo("AJEDREZ");
   login();
 }
+
+//inicializo la variable para el turno
+var firsTime = true;
 
 //llamada ajax login
 function login(){
@@ -179,8 +183,25 @@ function recTablero(){
 
 //cambiar turno
 function turno(){
-  $("#blancas").slideToggle();
-  $("#negras").slideToggle();
+  $.ajax({
+    type: 'GET',
+    url: 'https://young-inlet-29774.herokuapp.com/api/turno/'+localStorage.token+'/'+localStorage.idPartida,
+
+    success: function(result) {
+      result = JSON.parse(result);
+      if (result.turno == "blancas") {
+        $("#negras").hide();
+        $("#blancas").show();
+      }else{
+        $("#blancas").hide();
+        $("#negras").show();
+      }
+    },
+
+    error: function() {
+      alert("Algo falló con los turnos.");
+    }
+  });
 }
 
 //tablero
@@ -215,10 +236,15 @@ function crearTablero(result){
           var marronFlojo = function(){
             $(this).css('background-color', '#c9a060').addClass("rounded").attr("value", ""+i+j);
             if ($(this).attr('value') in fichas){
-              var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+              if (fichas[$(this).attr('value')][0] == "img/b4.png" || fichas[$(this).attr('value')][0] == "img/b6.png"){
+                var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out blancas' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+              } else {
+                var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out negras' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+              }
+              
             }else{
               $(this).attr("onclick", "moverFicha(event)");
-              var img = "<img src='img/oscuro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
+              var img = "<img src='img/oscuro.jpg' width='1px' height='1px' border='2' display='block' alt=''/>";
             }
             $(this).append(img);
           }
@@ -227,10 +253,14 @@ function crearTablero(result){
           var marronFuerte = function(){
             $(this).css('background-color', '#f9dcae').addClass("rounded").attr("value", ""+i+j);
             if ($(this).attr('value') in fichas){
-              var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+              if (fichas[$(this).attr('value')][0] == "img/b4.png" || fichas[$(this).attr('value')][0] == "img/b6.png"){
+                var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out blancas' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+              } else {
+                var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out negras' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+              }
             }else{
               $(this).attr("onclick", "moverFicha(event)");
-              var img = "<img src='img/claro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
+              var img = "<img src='img/claro.jpg' width='1px' height='1px' border='2' display='block' alt=''/>";
             }
             $(this).append(img);
           }
@@ -243,9 +273,27 @@ function crearTablero(result){
   $(".tablero").append(table);
 }
 
-//guardo la ficha seleccionada
+//guardo la ficha seleccionada si es tu turno
 function guardarFicha(event){
-  localStorage.setItem("idFicha", event.target.getAttribute("id"));
+  $.ajax({
+    type: 'GET',
+    url: 'https://young-inlet-29774.herokuapp.com/api/turno/'+localStorage.token+'/'+localStorage.idPartida,
+
+    success: function(result) {
+      result = JSON.parse(result);
+      if (event.target.classList.contains(result.turno)) {
+        localStorage.setItem("idFicha", event.target.getAttribute("id"));
+      }else{
+        alert("No te toca");
+      }
+    },
+
+    error: function() {
+      alert("Algo falló, lo arreglaremos con la mayor brevedad posible.");
+      localStorage.removeItem("idFicha");
+    }
+  });
+
 }
 
 //intento hacer el movimiento indicado
