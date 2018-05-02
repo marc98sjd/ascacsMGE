@@ -3,12 +3,14 @@ function ready(){
   titulo("AJEDREZ");
   disponible();
 }
-/*function partida(){
-    crearTablero();
-}*/
+function partida(){
+  window.setInterval(function(){
+    recTablero();
+  }, 2000);
+}
 function inicio(){
-    titulo("AJEDREZ");
-    login();
+  titulo("AJEDREZ");
+  login();
 }
 
 //llamada ajax login
@@ -42,6 +44,25 @@ function login(){
             });
         });
     }); 
+}
+
+//logout
+function logout(){
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/logout/'+localStorage.token,
+
+      success: function() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("idPartida");
+        localStorage.removeItem("user2");
+        window.location.replace("index.html");
+      },
+
+      error: function() {
+        alert("No puedes cerrar sesión en éste momento.");
+      }
+    });
 }
 
 //copiar token
@@ -137,13 +158,7 @@ function jugar(){
 
 //funcion que redirige a partida
 function jugarYa(){
-    window.location.replace("partida.html?id="+localStorage.idPartida);
-    
-    window.setInterval(function(){
-        recTablero();
-    }, 1000);
-
-
+    window.location.replace("partida.html");
 }
 
 //recargar tablero
@@ -154,17 +169,45 @@ function recTablero(){
 
       success: function(result) {
         crearTablero(result);
-        alert("estoy llamando las fichas bien");
+        turno();
       },
 
       error: function() {
-        alert("Algo falló en ajax:\nhttps://young-inlet-29774.herokuapp.com/api/fixa/"+localStorage.idPartida);
+        alert("Algo falló");
       }
     });
 }
 
+//cambiar turno
+function turno(){
+  $.ajax({
+    type: 'GET',
+    url: 'https://young-inlet-29774.herokuapp.com/api/turno/'+localStorage.token+'/'+localStorage.idPartida,
+
+    success: function(result) {
+      result = JSON.parse(result);
+      if (result.turno == "blancas") {
+        $("#negras").hide();
+        $("#blancas").show();
+      }else{
+        $("#blancas").hide();
+        $("#negras").show();
+      }
+    },
+
+    error: function() {
+      alert("Algo falló con los turnos.");
+    }
+  });
+}
+
 //tablero
-function crearTablero(fichas) {
+function crearTablero(result){
+    var fichas = {};
+    for (var i = 0; i < result.length; i += 3) {
+        fichas[result[i]] = [result[i+1],result[i+2]];
+    }
+  $(".tablero" ).empty();
   var table = document.createElement("table");
   var tabla = function(){
     $(this).css({
@@ -189,11 +232,16 @@ function crearTablero(fichas) {
         if(i%2 == j%2){
           var marronFlojo = function(){
             $(this).css('background-color', '#c9a060').addClass("rounded").attr("value", ""+i+j);
-            alert($(this).val()+"\n"+Number($(this).val()));
-            if ($(this).val() == fichas[$(this).val()]) {
-                var img = "<img class='hvr-buzz-out' src='"+fichas[Number($(this).val())+1]+"' width='100%' height='80%' border='2' display='block' alt=''/>";
+            if ($(this).attr('value') in fichas){
+              if (fichas[$(this).attr('value')][0] == "img/b4.png" || fichas[$(this).attr('value')][0] == "img/b6.png"){
+                var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out blancas' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+              } else {
+                var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out negras' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+              }
+              
             }else{
-                var img = "<img src='img/oscuro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
+              $(this).attr("onclick", "moverFicha(event)");
+              var img = "<img src='img/oscuro.jpg' width='1px' height='1px' border='2' display='block' alt=''/>";
             }
             $(this).append(img);
           }
@@ -201,11 +249,15 @@ function crearTablero(fichas) {
         }else{
           var marronFuerte = function(){
             $(this).css('background-color', '#f9dcae').addClass("rounded").attr("value", ""+i+j);
-            alert($(this).val()+"\n"+Number($(this).val()));
-            if ($(this).val() == fichas[$(this).val()]) {
-                var img = "<img class='hvr-buzz-out' src='"+fichas[Number($(this).val())+1]+"' width='100%' height='80%' border='2' display='block' alt=''/>";
+            if ($(this).attr('value') in fichas){
+              if (fichas[$(this).attr('value')][0] == "img/b4.png" || fichas[$(this).attr('value')][0] == "img/b6.png"){
+                var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out blancas' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+              } else {
+                var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out negras' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+              }
             }else{
-                var img = "<img src='img/claro.jpg' width='100%' height='80%' border='2' display='block' alt=''/>";
+              $(this).attr("onclick", "moverFicha(event)");
+              var img = "<img src='img/claro.jpg' width='1px' height='1px' border='2' display='block' alt=''/>";
             }
             $(this).append(img);
           }
@@ -216,6 +268,54 @@ function crearTablero(fichas) {
       table.appendChild(tr);
   }
   $(".tablero").append(table);
+}
+
+//guardo la ficha seleccionada si es tu turno
+function guardarFicha(event){
+  $.ajax({
+    type: 'GET',
+    url: 'https://young-inlet-29774.herokuapp.com/api/turno/'+localStorage.token+'/'+localStorage.idPartida,
+
+    success: function(result) {
+      result = JSON.parse(result);
+      if (event.target.classList.contains(result.turno)) {
+        localStorage.setItem("idFicha", event.target.getAttribute("id"));
+      }else{
+        alert("No te toca");
+      }
+    },
+
+    error: function() {
+      alert("Algo falló, lo arreglaremos con la mayor brevedad posible.");
+      localStorage.removeItem("idFicha");
+    }
+  });
+
+}
+
+//intento hacer el movimiento indicado
+function moverFicha(event){
+  if (!(localStorage.getItem("idFicha") === null)) {
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/mover/'+localStorage.token+'/'+localStorage.idFicha+'/'+event.target.getAttribute("value"),
+
+      success: function(result) {
+        result = JSON.parse(result);
+        if (result.status == "ok") {
+          recTablero();
+        }else{
+          alert("ERROR: "+result.msg);
+        }
+        localStorage.removeItem("idFicha");
+      },
+
+      error: function() {
+        alert("Algo falló, lo arreglaremos con la mayor brevedad posible.");
+        localStorage.removeItem("idFicha");
+      }
+    });
+  }
 }
 
 //cordova
