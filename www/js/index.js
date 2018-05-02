@@ -13,9 +13,6 @@ function inicio(){
   login();
 }
 
-//inicializo la variable para el turno
-var firsTime = true;
-
 //llamada ajax login
 function login(){
     $(document).ready(function(){
