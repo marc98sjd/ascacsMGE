@@ -240,6 +240,9 @@ function crearTablero(result){
               } else {
                 var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out negras' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
               }
+              if (true) {
+                $(this).prop('onclick',null).off('click');
+              }
               
             }else{
               $(this).attr("onclick", "moverFicha(event)");
@@ -354,7 +357,7 @@ var app = {
 
 app.initialize();
 
-//login/disponible/partida effects
+//login/disponible effects
 function titulo(palabra){
     var c = document.getElementById("myCanvas");
     var ctx = c.getContext("2d");

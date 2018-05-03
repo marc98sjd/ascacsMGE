@@ -140,3 +140,7 @@ body {
     animation:fade 3000ms infinite;
     -webkit-animation:fade 3000ms infinite;
 }
+
+div.cosis {
+  padding-top: 10%;
+}
