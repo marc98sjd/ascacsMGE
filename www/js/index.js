@@ -34,6 +34,7 @@ function login(){
                         alert(resultado.msg);
                     }else{
                         localStorage.setItem("token", resultado.token);
+                        localStorage.setItem("idUsuario", resultado.idUsuario);
                         window.location.replace("disponible.html");
                     }
                 },
@@ -56,6 +57,7 @@ function logout(){
         localStorage.removeItem("token");
         localStorage.removeItem("idPartida");
         localStorage.removeItem("user2");
+        localStorage.removeItem("idUsuario");
         window.location.replace("index.html");
       },
 
@@ -134,7 +136,7 @@ function disponible(){
   });
 }
 
-//iniciar partida
+//iniciar partida en la bd
 function jugar(){
     $.ajax({
       type: 'GET',
@@ -204,8 +206,8 @@ function turno(){
 //tablero
 function crearTablero(result){
     var fichas = {};
-    for (var i = 0; i < result.length; i += 3) {
-        fichas[result[i]] = [result[i+1],result[i+2]];
+    for (var i = 0; i < result.length; i += 4) {
+        fichas[result[i]] = [result[i+1],result[i+2],result[i+3]];
     }
   $(".tablero" ).empty();
   var table = document.createElement("table");
@@ -243,6 +245,10 @@ function crearTablero(result){
               $(this).attr("onclick", "moverFicha(event)");
               var img = "<img src='img/oscuro.jpg' width='1px' height='1px' border='2' display='block' alt=''/>";
             }
+            if (localStorage.idUsuario != fichas[$(this).attr('value')][2]) {
+              alert("ls.idusuario (id usuario logado): "+localStorage.idUsuario+"\nid usuario que le toca: "+fichas[$(this).attr('value')][2]);
+            }
+
             $(this).append(img);
           }
           marronFlojo.call( td );
