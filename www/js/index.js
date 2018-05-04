@@ -175,7 +175,7 @@ function recTablero(){
       },
 
       error: function() {
-        alert("Algo falló");
+        alert("Algo falló al pedir las fichas.");
       }
     });
 }
