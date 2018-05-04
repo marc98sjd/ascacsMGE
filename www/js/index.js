@@ -153,7 +153,7 @@ function jugar(){
       },
 
       error: function() {
-        alert("Algo falló.");
+        alert("No se puede crear la partida en éste momento.");
       }
     });
 }
@@ -234,35 +234,45 @@ function crearTablero(result){
         if(i%2 == j%2){
           var marronFlojo = function(){
             $(this).css('background-color', '#c9a060').addClass("rounded").attr("value", ""+i+j);
-            if ($(this).attr('value') in fichas){
-              if (fichas[$(this).attr('value')][0] == "img/b4.png" || fichas[$(this).attr('value')][0] == "img/b6.png"){
-                var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out blancas' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
-              } else {
-                var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out negras' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+            var key = $(this).attr('value');
+            if (key in fichas){
+              if (fichas[key][0] == "img/b4.png" || fichas[key][0] == "img/b6.png"){
+                if (localStorage.idUsuario != fichas[key][2]){
+                  var img = "<img id='"+fichas[key][1]+"' class='blancas' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+                }else{
+                  var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out blancas' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+                }
+              }else{
+                if (localStorage.idUsuario != fichas[key][2]){
+                  var img = "<img id='"+fichas[key][1]+"' class='negras' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+                }else{
+                  var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out negras' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+                }
               }
-              if (true) {
-                $(this).prop('onclick',null).off('click');
-              }
-              
             }else{
               $(this).attr("onclick", "moverFicha(event)");
               var img = "<img src='img/oscuro.jpg' width='1px' height='1px' border='2' display='block' alt=''/>";
             }
-            if (localStorage.idUsuario != fichas[$(this).attr('value')][2]) {
-              alert("ls.idusuario (id usuario logado): "+localStorage.idUsuario+"\nid usuario que le toca: "+fichas[$(this).attr('value')][2]);
-            }
-
             $(this).append(img);
           }
           marronFlojo.call( td );
         }else{
           var marronFuerte = function(){
             $(this).css('background-color', '#f9dcae').addClass("rounded").attr("value", ""+i+j);
-            if ($(this).attr('value') in fichas){
-              if (fichas[$(this).attr('value')][0] == "img/b4.png" || fichas[$(this).attr('value')][0] == "img/b6.png"){
-                var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out blancas' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+            var key = $(this).attr('value');
+            if (key in fichas){
+              if (fichas[key][0] == "img/b4.png" || fichas[key][0] == "img/b6.png"){
+                if (localStorage.idUsuario != fichas[key][2]){
+                  var img = "<img id='"+fichas[key][1]+"' class='blancas' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+                }else{
+                  var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out blancas' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+                }
               } else {
-                var img = "<img id='"+fichas[$(this).attr('value')][1]+"' class='hvr-buzz-out negras' src='"+fichas[$(this).attr('value')][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+                if (localStorage.idUsuario != fichas[key][2]){
+                  var img = "<img id='"+fichas[key][1]+"' class='negras' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+                }else{
+                  var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out negras' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+                }
               }
             }else{
               $(this).attr("onclick", "moverFicha(event)");
