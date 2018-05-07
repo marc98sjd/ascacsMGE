@@ -15,56 +15,47 @@ function inicio(){
 
 //llamada ajax login
 function login(){
-    $(document).ready(function(){
-        $("#login").click(function(){
-            var correo = $("#userName").val();
-            var contra = $("#userPassword").val();
-            $.ajax({
-                type: 'GET',
-                url: 'https://young-inlet-29774.herokuapp.com/api/login/'+correo+'/'+contra,
-                contentType: 'text/plain',
+  $(document).ready(function(){
+    $("#login").click(function(){
+      var correo = $("#userName").val();
+      var contra = $("#userPassword").val();
+      $.ajax({
+        type: 'GET',
+        url: 'https://young-inlet-29774.herokuapp.com/api/login/'+correo+'/'+contra,
 
-                xhrFields: {
-                  withCredentials: false
-                },
-
-                success: function(result) {
-                    var resultado = JSON.parse(result);
-                    if (resultado.status == "wrong") {
-                        alert(resultado.msg);
-                    }else{
-                        localStorage.setItem("token", resultado.token);
-                        localStorage.setItem("idUsuario", resultado.idUsuario);
-                        window.location.replace("disponible.html");
-                    }
-                },
-
-                error: function() {
-                    alert("Algo falló.");
-                }
-            });
-        });
-    }); 
+        success: function(result) {
+          var resultado = JSON.parse(result);
+          if (resultado.status == "wrong") {
+            alert(resultado.msg);
+          }else{
+            localStorage.setItem("token", resultado.token);
+            localStorage.setItem("idUsuario", resultado.idUsuario);
+            window.location.replace("disponible.html");
+          }
+        }
+      });
+    });
+  }); 
 }
 
 //logout
 function logout(){
-    $.ajax({
-      type: 'GET',
-      url: 'https://young-inlet-29774.herokuapp.com/api/logout/'+localStorage.token,
+  $.ajax({
+    type: 'GET',
+    url: 'https://young-inlet-29774.herokuapp.com/api/logout/'+localStorage.token,
 
-      success: function() {
-        localStorage.removeItem("token");
-        localStorage.removeItem("idPartida");
-        localStorage.removeItem("user2");
-        localStorage.removeItem("idUsuario");
-        window.location.replace("index.html");
-      },
+    success: function() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("idPartida");
+      localStorage.removeItem("user2");
+      localStorage.removeItem("idUsuario");
+      window.location.replace("index.html");
+    },
 
-      error: function() {
-        alert("No puedes cerrar sesión en éste momento.");
-      }
-    });
+    error: function() {
+      alert("No puedes cerrar sesión en éste momento.");
+    }
+  });
 }
 
 //copiar token
@@ -99,10 +90,6 @@ function disponible(){
         $(".posibles").click(function(event){
             localStorage.setItem("user2", event.target.innerHTML);
         });
-      },
-
-      error: function() {
-        alert("Algo falló.");
       }
     });
 
@@ -127,10 +114,6 @@ function disponible(){
           localStorage.setItem("idPartida", event.target.getAttribute("value"));
           jugarYa();
         });
-      },
-
-      error: function() {
-        alert("Algo falló.");
       }
     });
   });
@@ -172,10 +155,6 @@ function recTablero(){
       success: function(result) {
         crearTablero(result);
         turno();
-      },
-
-      error: function() {
-        alert("Algo falló al pedir las fichas.");
       }
     });
 }
@@ -190,15 +169,11 @@ function turno(){
       result = JSON.parse(result);
       if (result.turno == "blancas") {
         $("#negras").hide();
-        $("#blancas").show();
+        $("#blancas").html(result.jugador).show();
       }else{
         $("#blancas").hide();
-        $("#negras").show();
+        $("#negras").html(result.jugador).show();
       }
-    },
-
-    error: function() {
-      alert("Algo falló con los turnos.");
     }
   });
 }
@@ -223,28 +198,24 @@ function crearTablero(result){
   tabla.call( table );
   for(var i = 1; i < 9; i++){
       var tr = document.createElement('tr');
-      var trr = function(){
-        $(this).css({
-          'height' : '70px'
-        });
-      }
-      trr.call( tr );
       for(var j = 1; j < 9; j++){
         var td = document.createElement('td');
         if(i%2 == j%2){
           var marronFlojo = function(){
-            $(this).css('background-color', '#c9a060').addClass("rounded").attr("value", ""+i+j);
+            $(this).css({'background-color':'#c9a060', 'height':'80px', 'width':'80px'}).addClass("rounded").attr("value", ""+i+j);
             var key = $(this).attr('value');
             if (key in fichas){
               if (fichas[key][0] == "img/b4.png" || fichas[key][0] == "img/b6.png"){
                 if (localStorage.idUsuario != fichas[key][2]){
-                  var img = "<img id='"+fichas[key][1]+"' class='blancas' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+                  var img = "<img id='"+fichas[key][1]+"' class='blancas unseen' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+                  $(this).attr("onclick", "moverFicha(event)");
                 }else{
                   var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out blancas' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
                 }
               }else{
                 if (localStorage.idUsuario != fichas[key][2]){
-                  var img = "<img id='"+fichas[key][1]+"' class='negras' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+                  var img = "<img id='"+fichas[key][1]+"' class='negras unseen' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+                  $(this).attr("onclick", "moverFicha(event)");
                 }else{
                   var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out negras' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
                 }
@@ -258,18 +229,20 @@ function crearTablero(result){
           marronFlojo.call( td );
         }else{
           var marronFuerte = function(){
-            $(this).css('background-color', '#f9dcae').addClass("rounded").attr("value", ""+i+j);
+            $(this).css({'background-color':'#f9dcae', 'height':'80px', 'width':'80px'}).addClass("rounded").attr("value", ""+i+j);
             var key = $(this).attr('value');
             if (key in fichas){
               if (fichas[key][0] == "img/b4.png" || fichas[key][0] == "img/b6.png"){
                 if (localStorage.idUsuario != fichas[key][2]){
-                  var img = "<img id='"+fichas[key][1]+"' class='blancas' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+                  var img = "<img id='"+fichas[key][1]+"' class='blancas unseen' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+                  $(this).attr("onclick", "moverFicha(event)");
                 }else{
                   var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out blancas' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
                 }
               } else {
                 if (localStorage.idUsuario != fichas[key][2]){
-                  var img = "<img id='"+fichas[key][1]+"' class='negras' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+                  var img = "<img id='"+fichas[key][1]+"' class='negras unseen' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+                  $(this).attr("onclick", "moverFicha(event)");
                 }else{
                   var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out negras' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
                 }
@@ -291,6 +264,7 @@ function crearTablero(result){
 
 //guardo la ficha seleccionada si es tu turno
 function guardarFicha(event){
+  localStorage.removeItem("hayla");
   $.ajax({
     type: 'GET',
     url: 'https://young-inlet-29774.herokuapp.com/api/turno/'+localStorage.token+'/'+localStorage.idPartida,
@@ -299,14 +273,16 @@ function guardarFicha(event){
       result = JSON.parse(result);
       if (event.target.classList.contains(result.turno)) {
         localStorage.setItem("idFicha", event.target.getAttribute("id"));
+        localStorage.setItem("placeFicha", event.target.parentNode.getAttribute("value"));
+        localStorage.setItem("ruta", event.target.getAttribute("src"));
       }else{
         alert("No te toca");
       }
     },
 
     error: function() {
-      alert("Algo falló, lo arreglaremos con la mayor brevedad posible.");
       localStorage.removeItem("idFicha");
+      localStorage.removeItem("hayla");
     }
   });
 
@@ -315,28 +291,83 @@ function guardarFicha(event){
 //intento hacer el movimiento indicado
 function moverFicha(event){
   if (!(localStorage.getItem("idFicha") === null)) {
-    $.ajax({
-      type: 'GET',
-      url: 'https://young-inlet-29774.herokuapp.com/api/mover/'+localStorage.token+'/'+localStorage.idFicha+'/'+event.target.getAttribute("value"),
+    var actual = parseInt(localStorage.getItem("placeFicha"));
+    var siguiente = parseInt(event.target.getAttribute("value"));
+    var ruta = localStorage.getItem("ruta");
+    localStorage.removeItem("hayla");
+    if (event.target.firstChild.classList.contains('unseen')) {
+      localStorage.setItem("hayla",event.target.firstChild);
+    }
 
-      success: function(result) {
-        result = JSON.parse(result);
-        if (result.status == "ok") {
-          recTablero();
-        }else{
-          alert("ERROR: "+result.msg);
+    if (comprobarMovimiento(actual,siguiente,ruta)) {
+      $.ajax({
+        type: 'GET',
+        url: 'https://young-inlet-29774.herokuapp.com/api/mover/'+localStorage.token+'/'+localStorage.idFicha+'/'+siguiente,
+
+        success: function(result) {
+          result = JSON.parse(result);
+          if (result.status == "wrong") {
+            alert("ERROR: "+result.msg);
+          }
+          localStorage.removeItem("idFicha");
+          localStorage.removeItem("hayla");
+        },
+
+        error: function() {
+          localStorage.removeItem("idFicha");
+          localStorage.removeItem("hayla");
         }
-        localStorage.removeItem("idFicha");
-      },
-
-      error: function() {
-        alert("Algo falló, lo arreglaremos con la mayor brevedad posible.");
-        localStorage.removeItem("idFicha");
-      }
-    });
+      });
+    } else {
+      alert("No puedes hacer éste movimiento.");
+    }
   }
 }
 
+//función que comprueba qué ficha se intenta mover
+function comprobarMovimiento(actual,siguiente,ruta){
+  if (ruta == "img/b4.png" || ruta == "img/n4.png") {
+    return peon(actual,siguiente,ruta);
+  } else if(ruta == "img/b6.png" || ruta == "img/n6.png") {
+    return torre(actual,siguiente,ruta);
+  }
+}
+
+//funcion que comprueba el movimiento del peon
+function peon(actual,siguiente,ruta){
+  if(ruta == "img/b4.png"){
+    if(siguiente == actual + 10 && localStorage.getItem("hayla") === null){
+      return true;
+    }else if(localStorage.getItem("hayla") !== null) {
+      if (siguiente == actual + 11 || siguiente == actual + 9) {
+        $.ajax({
+          type: 'GET',
+          url: 'https://young-inlet-29774.herokuapp.com/api/matar/'+localStorage.token+'/'+siguiente
+        });
+        return true;
+      }
+    }
+  }else{
+    if(siguiente == actual - 10 && localStorage.getItem("hayla") === null){
+      return true;
+    }else if(localStorage.getItem("hayla") !== null) {
+      if (siguiente == actual - 11 || siguiente == actual - 9) {
+        $.ajax({
+          type: 'GET',
+          url: 'https://young-inlet-29774.herokuapp.com/api/matar/'+localStorage.token+'/'+siguiente
+        });
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+//funcion que comprueba el movimiento de la torre
+function torre(actual,siguiente,ruta){
+  //codigo torre
+  return false;
+}
 //cordova
 var app = {
     // Application Constructor

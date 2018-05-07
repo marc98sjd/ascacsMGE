@@ -144,3 +144,7 @@ body {
 div.cosis {
   padding-top: 10%;
 }
+
+.unseen{
+  pointer-events: none;
+}
