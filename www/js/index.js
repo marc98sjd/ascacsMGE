@@ -365,29 +365,45 @@ function peon(actual,siguiente,ruta){
 
 //funcion que comprueba el movimiento de la torre
 function torre(actual,siguiente,ruta){
+  var movimiento = "";
   for (var i = 10; i < 71; i+= 10) {
     if (siguiente == actual + i || siguiente == actual - i) {
-      if (localStorage.getItem("hayla") !== null) {
-        $.ajax({
-          type: 'GET',
-          url: 'https://young-inlet-29774.herokuapp.com/api/matar/'+localStorage.token+'/'+siguiente
-        });
+      movimiento = "vertical";
+      if (sinPiezaEnMedio(actual,siguiente,movimiento)) {
+        if (localStorage.getItem("hayla") !== null) {
+          $.ajax({
+            type: 'GET',
+            url: 'https://young-inlet-29774.herokuapp.com/api/matar/'+localStorage.token+'/'+siguiente
+          });
+        }
+        return true;
       }
-      return true;
+      return false;
     }
   }
   for (var i = 1; i < 8; i++) {
     if (siguiente == actual + i || siguiente == actual - i) {
-      if (localStorage.getItem("hayla") !== null) {
-        $.ajax({
-          type: 'GET',
-          url: 'https://young-inlet-29774.herokuapp.com/api/matar/'+localStorage.token+'/'+siguiente
-        });
+      movimiento = "horizontal";
+      if (sinPiezaEnMedio(actual,siguiente,movimiento)) {
+        if (localStorage.getItem("hayla") !== null) {
+          $.ajax({
+            type: 'GET',
+            url: 'https://young-inlet-29774.herokuapp.com/api/matar/'+localStorage.token+'/'+siguiente
+          });
+        }
+        return true;
       }
-      return true;
     }
+    return false;
   }
-  return false;
+}
+
+//funcion que comprueba que no haya pieza en medio del movimimento
+function sinPiezaEnMedio(actual,siguiente,movimimento) {
+  return $.ajax({
+    type: 'GET',
+    url: 'https://young-inlet-29774.herokuapp.com/api/enmedio/'+localStorage.token+'/'+actual+'/'+siguiente+'/'+movimimento,
+  });
 }
 
 //cordova
