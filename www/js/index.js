@@ -296,7 +296,7 @@ function moverFicha(event){
     var ruta = localStorage.getItem("ruta");
     localStorage.removeItem("hayla");
     if (event.target.firstChild.classList.contains('unseen')) {
-      localStorage.setItem("hayla",event.target.firstChild);
+      localStorage.setItem("hayla",ruta);
     }
 
     if (comprobarMovimiento(actual,siguiente,ruta)) {
@@ -365,9 +365,31 @@ function peon(actual,siguiente,ruta){
 
 //funcion que comprueba el movimiento de la torre
 function torre(actual,siguiente,ruta){
-  //codigo torre
+  for (var i = 10; i < 71; i+= 10) {
+    if (siguiente == actual + i || siguiente == actual - i) {
+      if (localStorage.getItem("hayla") !== null) {
+        $.ajax({
+          type: 'GET',
+          url: 'https://young-inlet-29774.herokuapp.com/api/matar/'+localStorage.token+'/'+siguiente
+        });
+      }
+      return true;
+    }
+  }
+  for (var i = 1; i < 8; i++) {
+    if (siguiente == actual + i || siguiente == actual - i) {
+      if (localStorage.getItem("hayla") !== null) {
+        $.ajax({
+          type: 'GET',
+          url: 'https://young-inlet-29774.herokuapp.com/api/matar/'+localStorage.token+'/'+siguiente
+        });
+      }
+      return true;
+    }
+  }
   return false;
 }
+
 //cordova
 var app = {
     // Application Constructor
