@@ -185,6 +185,9 @@ function recTablero(){
       success: function(result) {
         crearTablero(result);
         turno();
+      },
+      error: function() {
+        finalPartida("SE ACABÓ LA PARTIDA! FIN DEL JUEGO!");
       }
     });
 }
