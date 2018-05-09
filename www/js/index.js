@@ -1,17 +1,29 @@
-//onload listo
+/*
+
+    Nombre fichero: index.js
+    Creador: Marc Guerra
+    Fecha creación: 10/04/2018
+    Funcionalidad: Controlar todas las funcionalidades hechas en JS/JQUERY. 
+      Controlar parte de la lógica del ajedrez, redireccionar, crear el tablero, peticiones al servidor,etc.
+
+*/
+
+//onload index.html listo
+function inicio(){
+  titulo("AJEDREZ");
+  login();
+}
+//onload disponible.html listo
 function ready(){
   titulo("AJEDREZ");
   disponible();
 }
+//onload partida.html listo
 function partida(){
   window.setInterval(function(){
     recTablero();
   }, 2000);
   menuPartida();
-}
-function inicio(){
-  titulo("AJEDREZ");
-  login();
 }
 
 //llamada ajax login
@@ -62,7 +74,7 @@ function logout(){
 }
 
 //copiar token
-function copiar() {
+function copiarToken() {
   var token = $("#token_place").text();
   var tempInput = document.createElement("input");
   tempInput.style = "position: absolute; left: -1000px; top: -1000px";
@@ -76,6 +88,12 @@ function copiar() {
 //pantalla disponible
 function disponible(){
   $("#token_place").text(localStorage.token);
+  cargarUsuarios();
+  cargarPartidas();
+}
+
+//cargo los usuarios disponibles para jugar
+function cargarUsuarios() {
   $("#menuUser").click(function(){
     $.ajax({
       type: 'GET',
@@ -95,9 +113,11 @@ function disponible(){
         });
       }
     });
-
   });
+}
 
+//cargo las partidas disponibles para jugar
+function cargarPartidas() {
   $("#menuPartida").click(function(){
     $.ajax({
       type: 'GET',
@@ -190,45 +210,38 @@ function turno(){
 
 //tablero
 function crearTablero(result){
+  var fichas = diccionarioFichas(result);
+
+  comprobarFinal(fichas);
+
+  $(".tablero" ).empty();
+  var table = tableTag();
+  for(var i = 1; i < 9; i++){
+      var tr = document.createElement('tr');
+      for(var j = 1; j < 9; j++){
+        var td = document.createElement('td');
+        if(i%2 == j%2){
+          td = celdasFuertes(td,fichas);
+        }else{
+          td = celdasFlojas(td,fichas);
+        }
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+  }
+  $(".tablero").append(table);
+}
+
+//creo el diccionario de fichas
+function diccionarioFichas(result) {
   var fichas = {};
   for (var i = 0; i < result.length; i += 4) {
     fichas[result[i]] = [result[i+1],result[i+2],result[i+3]];
   }
-  if (Object.keys(fichas).length == 1) {
-    $.ajax({
-      type: 'GET',
-      url: 'https://young-inlet-29774.herokuapp.com/api/final/'+localStorage.token+'/'+localStorage.idPartida
-    });
-    finalPartida("FINAL DE PARTIDA!");
-  }
-  var final = "nowhites";
-  var rutaNegra = ["img/n6.png","img/n4.png"];
-  var rutaBlanca = ["img/b6.png","img/b4.png"];
-  for(var i in fichas){
-    if (fichas[i][0] != rutaNegra[0] || fichas[i][0] != rutaNegra[1]){
-      final = "BLANCAS";
-      break;
-    }
-  }
-  if (final == "BLANCAS") {
-    for(var i in fichas){
-      rutaNegra = rutaBlanca.indexOf(fichas[i][0]);
-      if (rutaNegra == -1) {
-        final = "black&white";
-        break;
-      }
-    }
-  }else{
-    final == "NEGRAS";
-  }
-  if (final == "BLANCAS" || final == "NEGRAS") {
-    $.ajax({
-      type: 'GET',
-      url: 'https://young-inlet-29774.herokuapp.com/api/final/'+localStorage.token+'/'+localStorage.idPartida
-    });
-    finalPartida("VICTORIA PARA "+final+"! FIN DEL JUEGO!");
-  }
-  $(".tablero" ).empty();
+  return fichas;
+}
+//creo el tag table
+function tableTag() {
   var table = document.createElement("table");
   var tabla = function(){
     $(this).css({
@@ -240,70 +253,69 @@ function crearTablero(result){
     });
   }
   tabla.call( table );
-  for(var i = 1; i < 9; i++){
-      var tr = document.createElement('tr');
-      for(var j = 1; j < 9; j++){
-        var td = document.createElement('td');
-        if(i%2 == j%2){
-          var marronFlojo = function(){
-            $(this).css({'background-color':'#c9a060', 'height':'80px', 'width':'80px'}).addClass("rounded").attr("value", ""+i+j);
-            var key = $(this).attr('value');
-            if (key in fichas){
-              if (fichas[key][0] == "img/b4.png" || fichas[key][0] == "img/b6.png"){
-                if (localStorage.idUsuario != fichas[key][2]){
-                  var img = "<img id='"+fichas[key][1]+"' class='blancas unseen' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
-                  $(this).attr("onclick", "moverFicha(event)");
-                }else{
-                  var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out blancas' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
-                }
-              }else{
-                if (localStorage.idUsuario != fichas[key][2]){
-                  var img = "<img id='"+fichas[key][1]+"' class='negras unseen' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
-                  $(this).attr("onclick", "moverFicha(event)");
-                }else{
-                  var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out negras' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
-                }
-              }
-            }else{
-              $(this).attr("onclick", "moverFicha(event)");
-              var img = "<img src='img/oscuro.jpg' width='1px' height='1px' border='2' display='block' alt=''/>";
-            }
-            $(this).append(img);
-          }
-          marronFlojo.call( td );
+  return table;
+}
+
+//creo celdas color fuerte
+function celdasFuertes(td,fichas) {
+  var marronFuerte = function(){
+    $(this).css({'background-color':'#c9a060', 'height':'80px', 'width':'80px'}).addClass("rounded").attr("value", ""+i+j);
+    var key = $(this).attr('value');
+    if (key in fichas){
+      if (fichas[key][0] == "img/b4.png" || fichas[key][0] == "img/b6.png"){
+        if (localStorage.idUsuario != fichas[key][2]){
+          var img = "<img id='"+fichas[key][1]+"' class='blancas unseen' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+          $(this).attr("onclick", "moverFicha(event)");
         }else{
-          var marronFuerte = function(){
-            $(this).css({'background-color':'#f9dcae', 'height':'80px', 'width':'80px'}).addClass("rounded").attr("value", ""+i+j);
-            var key = $(this).attr('value');
-            if (key in fichas){
-              if (fichas[key][0] == "img/b4.png" || fichas[key][0] == "img/b6.png"){
-                if (localStorage.idUsuario != fichas[key][2]){
-                  var img = "<img id='"+fichas[key][1]+"' class='blancas unseen' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
-                  $(this).attr("onclick", "moverFicha(event)");
-                }else{
-                  var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out blancas' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
-                }
-              } else {
-                if (localStorage.idUsuario != fichas[key][2]){
-                  var img = "<img id='"+fichas[key][1]+"' class='negras unseen' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
-                  $(this).attr("onclick", "moverFicha(event)");
-                }else{
-                  var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out negras' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
-                }
-              }
-            }else{
-              $(this).attr("onclick", "moverFicha(event)");
-              var img = "<img src='img/claro.jpg' width='1px' height='1px' border='2' display='block' alt=''/>";
-            }
-            $(this).append(img);
-          }
-          marronFuerte.call( td );
+          var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out blancas' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
         }
-        tr.appendChild(td);
+      }else{
+        if (localStorage.idUsuario != fichas[key][2]){
+          var img = "<img id='"+fichas[key][1]+"' class='negras unseen' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+          $(this).attr("onclick", "moverFicha(event)");
+        }else{
+          var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out negras' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+        }
       }
-      table.appendChild(tr);
+    }else{
+      $(this).attr("onclick", "moverFicha(event)");
+      var img = "<img src='img/oscuro.jpg' width='1px' height='1px' border='2' display='block' alt=''/>";
+    }
+    $(this).append(img);
   }
-  $(".tablero").append(table);
+  marronFuerte.call( td );
+  return td;
+}
+
+//creo celdas color flojo
+function celdasFlojas(td,fichas) {
+  var marronFlojo = function(){
+    $(this).css({'background-color':'#f9dcae', 'height':'80px', 'width':'80px'}).addClass("rounded").attr("value", ""+i+j);
+    var key = $(this).attr('value');
+    if (key in fichas){
+      if (fichas[key][0] == "img/b4.png" || fichas[key][0] == "img/b6.png"){
+        if (localStorage.idUsuario != fichas[key][2]){
+          var img = "<img id='"+fichas[key][1]+"' class='blancas unseen' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+          $(this).attr("onclick", "moverFicha(event)");
+        }else{
+          var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out blancas' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+        }
+      } else {
+        if (localStorage.idUsuario != fichas[key][2]){
+          var img = "<img id='"+fichas[key][1]+"' class='negras unseen' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block'/>";
+          $(this).attr("onclick", "moverFicha(event)");
+        }else{
+          var img = "<img id='"+fichas[key][1]+"' class='hvr-buzz-out negras' src='"+fichas[key][0]+"' width='100%' height='80%' border='2' display='block' onclick='guardarFicha(event)' />";
+        }
+      }
+    }else{
+      $(this).attr("onclick", "moverFicha(event)");
+      var img = "<img src='img/claro.jpg' width='1px' height='1px' border='2' display='block' alt=''/>";
+    }
+    $(this).append(img);
+  }
+  marronFlojo.call( td );
+  return td;
 }
 
 //guardo la ficha seleccionada si es tu turno
@@ -474,6 +486,43 @@ function sinPiezaEnMedio(actual,siguiente,movimimento) {
   }
 }
 
+//funcion que comprueba si se ha acabado la partida
+function comprobarFinal(fichas) {
+  if (Object.keys(fichas).length == 1) {
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/final/'+localStorage.token+'/'+localStorage.idPartida
+    });
+    finalPartida("FINAL DE PARTIDA!");
+  }
+  var final = "nowhites";
+  var rutaNegra = ["img/n6.png","img/n4.png"];
+  var rutaBlanca = ["img/b6.png","img/b4.png"];
+  for(var i in fichas){
+    if (fichas[i][0] != rutaNegra[0] || fichas[i][0] != rutaNegra[1]){
+      final = "BLANCAS";
+      break;
+    }
+  }
+  if (final == "BLANCAS") {
+    for(var i in fichas){
+      rutaNegra = rutaBlanca.indexOf(fichas[i][0]);
+      if (rutaNegra == -1) {
+        final = "black&white";
+        break;
+      }
+    }
+  }else{
+    final == "NEGRAS";
+  }
+  if (final == "BLANCAS" || final == "NEGRAS") {
+    $.ajax({
+      type: 'GET',
+      url: 'https://young-inlet-29774.herokuapp.com/api/final/'+localStorage.token+'/'+localStorage.idPartida
+    });
+    finalPartida("VICTORIA PARA "+final+"! FIN DEL JUEGO!");
+  }
+}
 //funcion que acaba la partida
 function finalPartida(text) {
   alert(text);
