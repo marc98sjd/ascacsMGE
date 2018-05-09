@@ -221,9 +221,9 @@ function crearTablero(result){
       for(var j = 1; j < 9; j++){
         var td = document.createElement('td');
         if(i%2 == j%2){
-          td = celdasFuertes(td,fichas);
+          td = celdasFuertes(td,fichas,i,j);
         }else{
-          td = celdasFlojas(td,fichas);
+          td = celdasFlojas(td,fichas,i,j);
         }
         tr.appendChild(td);
       }
@@ -257,7 +257,7 @@ function tableTag() {
 }
 
 //creo celdas color fuerte
-function celdasFuertes(td,fichas) {
+function celdasFuertes(td,fichas,i,j) {
   var marronFuerte = function(){
     $(this).css({'background-color':'#c9a060', 'height':'80px', 'width':'80px'}).addClass("rounded").attr("value", ""+i+j);
     var key = $(this).attr('value');
@@ -288,7 +288,7 @@ function celdasFuertes(td,fichas) {
 }
 
 //creo celdas color flojo
-function celdasFlojas(td,fichas) {
+function celdasFlojas(td,fichas,i,j) {
   var marronFlojo = function(){
     $(this).css({'background-color':'#f9dcae', 'height':'80px', 'width':'80px'}).addClass("rounded").attr("value", ""+i+j);
     var key = $(this).attr('value');
